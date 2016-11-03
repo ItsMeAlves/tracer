@@ -29,12 +29,12 @@ def run(ttl):
     # defines IP_TTL field to the package we are going to send
     # and then we just send it
     ssnd.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-    ssnd.sendto(" ", (targetHostname, port))
+    ssnd.sendto(" ", (targetAddress, port))
 
     # after that, we should receive a icmp response
     # containing data about the device where the package died
     srcv.settimeout(timeout)
-    _, currentAddress = srcv.recvfrom(256)
+    _, currentAddress = srcv.recvfrom(1024)
     currentAddress = currentAddress[0]
 
     # we try to find device's name
@@ -90,13 +90,13 @@ if __name__ == "__main__":
             targetHostname = args.host
 
         # print a header to the execution
-        print("tracer to %s (%s), %d max_ttl, timeout = %d" %
+        print("tracer to %s (%s), max_ttl = %d, timeout = %d" %
             (targetHostname, targetAddress, maxHops, timeout))
         # then, start running tracer with ttl equals to 1
         run(1)
     # if user interrupts, we let tracer die
     except KeyboardInterrupt:
         sys.exit(0)
-    # if arguments throw any exception, we just print help information
+    # # if arguments throw any exception, we just print help information
     except:
         parser.print_help()
