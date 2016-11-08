@@ -1,12 +1,13 @@
 #!/usr/bin/python
 
 # import modules to be used during the execution
-import socket, argparse, sys, re
+import socket, argparse, sys, re, time
 
-# defines default port, max_ttl and timeout 
+# defines default port, max_ttl and timeout
 port = 33434
 maxHops = 30
 timeout = 2000
+numPings = 3
 
 # variables to store target data
 targetHostname = ""
@@ -28,14 +29,22 @@ srcv.bind(("", port))
 def run(ttl):
     # defines IP_TTL field to the package we are going to send
     # and then we just send it
-    ssnd.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-    ssnd.sendto(" ", (targetAddress, port))
+    pings = ""
+    for i in range(0, numPings):
+        start = time.time()
 
-    # after that, we should receive a icmp response
-    # containing data about the device where the package died
-    srcv.settimeout(timeout)
-    _, currentAddress = srcv.recvfrom(1024)
-    currentAddress = currentAddress[0]
+        ssnd.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+        ssnd.sendto(" ", (targetAddress, port))
+
+        # after that, we should receive a icmp response
+        # containing data about the device where the package died
+        srcv.settimeout(timeout)
+        _, currentAddress = srcv.recvfrom(1024)
+        currentAddress = currentAddress[0]
+
+        final = time.time()
+        elapsedTime = (final - start) * 1000
+        pings += str(int(elapsedTime)) + "ms "
 
     # we try to find device's name
     try:
@@ -44,7 +53,7 @@ def run(ttl):
         currentHostname = currentAddress
 
     # finally, we just print the data we got
-    print("  %03d - %s (%s)" % (ttl, currentAddress, currentHostname))
+    print("  %03d - %s (%s) - %s" % (ttl, currentAddress, currentHostname, pings))
 
     # checks if we've tried the max desired ttl value
     # or if we reached to the target host
@@ -62,7 +71,6 @@ if __name__ == "__main__":
     # host, to know where we should trace a route to
     # max-hops, to change the default max_ttl (maxHops) value
     # timeout, to change the default timeout value
-
     parser = argparse.ArgumentParser()
     parser.add_argument("host", help="specifies the target to trace a route to",
         type=str)
