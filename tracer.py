@@ -105,6 +105,6 @@ if __name__ == "__main__":
     # if user interrupts, we let tracer die
     except KeyboardInterrupt:
         sys.exit(0)
-    # # if arguments throw any exception, we just print help information
+    # if arguments throw any exception, we just print help information
     except:
         parser.print_help()
